@@ -33,32 +33,8 @@ for i = 1:length(wave)
      if tempSO2_295(i)<=0
         tempSO2_295(i) = 1;
      end
-     if tempSO2_496(i)<=0
-        tempSO2_496(i) = 1;
-     end
-     if tempNO2_48(i)<=0
-        tempNO2_48(i) = 1;
-     end
-     if tempNO2_93(i)<=0
-        tempNO2_93(i) = 1;
-     end
-    if tempNO2_296(i)<=0
-        tempNO2_296(i) = 1;
-    end
-    if tempNO2_495(i)<=0
-        tempNO2_495(i) = 1;
-    end
-    if tempNO_50(i)<=0
-        tempNO_50(i) = 1;
-    end
-    if tempNO_99(i)<=0
-        tempNO_99(i) = 1;
-    end
-    if tempNO_301(i)<=0
-        tempNO_301(i) = 1;
-    end
-    if tempNO_499(i)<=0
-        tempNO_499(i) = 1;
+     if tempSO2_44(i)<=0
+        tempSO2_44(i) = 1;
     end
 end
 
