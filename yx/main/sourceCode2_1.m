@@ -71,6 +71,9 @@ diffarea_94 = diffSO2_94/(C_SO2_94*L);
 diffarea_295 = diffSO2_295/(C_SO2_295*L);
 diffarea_496 = diffSO2_496/(C_SO2_496*L);
 diffarea_1500 = diffSO2_1500/(C_SO2_1500*L);
+
+%%
+%对于吸收截面的优化处理
 %***************测试频点的选择***************************************************
 k = (diffarea_496 - diffarea_295)./diffarea_496;
 yuzhi = 0.05;
@@ -94,12 +97,76 @@ end
 %diffArea_in = diffArea_in';
 %[ diffArea_out ] = genetic_fun( diffArea_in );
 
+%************高通滤波器********************************************************
+%差分吸收截面的滤波处理
+spectrum_496 = fft(diffarea_496);
+spectrum_295 = fft(diffarea_295);
+spectrum_94 = fft(diffarea_94);
+spectrum_44 = fft(diffarea_44);
+spectrum_1500 = fft(diffarea_1500);
+
+long = length(spectrum_496);
+yuzhi = 52;
+lvboqi = ones(length(spectrum_496),1);
+lvboqi(yuzhi:long-yuzhi) = 0;
+
+seri = 1:length(spectrum_496);
+ttteeesssttt1 = ifft(spectrum_496.*lvboqi);
+ttteeesssttt2 = ifft(spectrum_295.*lvboqi);
+ttteeesssttt3 = ifft(spectrum_1500.*lvboqi);
 
 
+%差分吸收光谱的滤波处理
+
+sp_496 = fft(diffSO2_496);
+sp_295 = fft(diffSO2_295);
+sp_94 = fft(diffSO2_94);
+sp_44 = fft(diffSO2_44);
+sp_1500 = fft(diffSO2_1500);
+
+twt_496 = ifft(sp_496.*lvboqi);
+twt_295 = ifft(sp_295.*lvboqi);
+twt_1500 = ifft(sp_1500.*lvboqi);
+twt_44 = ifft(sp_44.*lvboqi);
+twt_94 = ifft(sp_94.*lvboqi);
+
+%二合一算法，先滤波后筛点
+%***************测试频点的选择***************************************************
+k = (ttteeesssttt1 - ttteeesssttt2)./ttteeesssttt1;
+yuzhi = 0.05;
+flag = 1;
+i = 1;
+temp2 = [];%记录差分吸收面积高度相似的频点的序号
+while flag
+    if abs(k(i))>yuzhi
+        k(i) = 0;
+    else
+         temp2 = [temp2 i];
+    end
+    i = i+1;
+    if i>length(k)
+        flag = 0;
+    end
+end
+
+%二合一算法，先筛点后滤波
+
+%傅里叶筛点法
 
 %%
-diffSO2_test = diffSO2_496(temp);
-diffArea = diffarea_496(temp);
+%滤波
+%diffSO2_test = twt_295;
+%diffArea = ttteeesssttt1;
+
+%筛点
+%diffSO2_test = diffSO2_295(temp);
+%diffArea = diffarea_496(temp);
+
+%先滤波后筛点
+diffSO2_test = twt_295(temp2);
+diffArea = ttteeesssttt1(temp2);
+
+
 %基于最小二乘法的浓度反演算法
 
 C_LSM = (diffArea'*diffSO2_test)/(diffArea'*diffArea*L);
@@ -123,8 +190,23 @@ delt1 = sum(diffArea(seri_pos)) - sum(diffArea(seri_neg));
 C_Integrat1 = (sum(diffSO2_test(seri_pos)) - sum(diffSO2_test(seri_neg)))/(delt1*L);
 C_Integrat1 = (C_Integrat1*64*10^9)/(ppm2mg*Na);
 
+%%
+
+%plot(seri,spectrum_496,'r',seri,spectrum_1500,'g',seri,spectrum_295,'b');legend('496ppm','1500ppm','295ppm');
 
 
+
+
+
+
+%plot(20:120,error);
+%plot(wave,diffarea_496,'b',wave,ttteeesssttt1,'g');
+
+%plot(seri,spectrum_496.*lvboqi,'b',seri,spectrum_295.*lvboqi,'g');legend('496ppm','295ppm')
+%plot(abs(spectrum_94));
+
+%plot(wave,ttteeesssttt,'b');
+%高通滤波器
 
 
 
