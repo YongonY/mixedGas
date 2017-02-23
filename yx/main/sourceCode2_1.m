@@ -75,22 +75,9 @@ diffarea_1500 = diffSO2_1500/(C_SO2_1500*L);
 %%
 %对于吸收截面的优化处理
 %***************测试频点的选择***************************************************
-k = (diffarea_496 - diffarea_295)./diffarea_496;
-yuzhi = 0.05;
-flag = 1;
-i = 1;
-temp = [];%记录差分吸收面积高度相似的频点的序号
-while flag
-    if abs(k(i))>yuzhi
-        k(i) = 0;
-    else
-         temp = [temp i];
-    end
-    i = i+1;
-    if i>length(k)
-        flag = 0;
-    end
-end
+
+[ temp1,num1 ] = screen( diffarea_496,diffarea_295,0.05 );
+
 %***************遗传算法优化***************************************************
 %效果很差暂时不用
 %diffArea_in = [diffarea_44,diffarea_94,diffarea_295,diffarea_496];
@@ -99,73 +86,56 @@ end
 
 %************高通滤波器********************************************************
 %差分吸收截面的滤波处理
-spectrum_496 = fft(diffarea_496);
-spectrum_295 = fft(diffarea_295);
-spectrum_94 = fft(diffarea_94);
-spectrum_44 = fft(diffarea_44);
-spectrum_1500 = fft(diffarea_1500);
-
-long = length(spectrum_496);
 yuzhi = 52;
-lvboqi = ones(length(spectrum_496),1);
-lvboqi(yuzhi:long-yuzhi) = 0;
 
-seri = 1:length(spectrum_496);
-ttteeesssttt1 = ifft(spectrum_496.*lvboqi);
-ttteeesssttt2 = ifft(spectrum_295.*lvboqi);
-ttteeesssttt3 = ifft(spectrum_1500.*lvboqi);
+ttteeesssttt1 = highPassFilter(diffarea_496, yuzhi );
+ttteeesssttt2 = highPassFilter(diffarea_295, yuzhi );
+ttteeesssttt3 = highPassFilter(diffarea_1500, yuzhi );
 
 
 %差分吸收光谱的滤波处理
 
-sp_496 = fft(diffSO2_496);
-sp_295 = fft(diffSO2_295);
-sp_94 = fft(diffSO2_94);
-sp_44 = fft(diffSO2_44);
-sp_1500 = fft(diffSO2_1500);
+twt_44 = highPassFilter(diffSO2_44, yuzhi );
+twt_94 = highPassFilter(diffSO2_94, yuzhi );
+twt_295 = highPassFilter(diffSO2_295, yuzhi );
+twt_496 = highPassFilter(diffSO2_496, yuzhi );
+twt_1500 = highPassFilter(diffSO2_1500, yuzhi );
 
-twt_496 = ifft(sp_496.*lvboqi);
-twt_295 = ifft(sp_295.*lvboqi);
-twt_1500 = ifft(sp_1500.*lvboqi);
-twt_44 = ifft(sp_44.*lvboqi);
-twt_94 = ifft(sp_94.*lvboqi);
 
-%二合一算法，先滤波后筛点
-%***************测试频点的选择***************************************************
-k = (ttteeesssttt1 - ttteeesssttt2)./ttteeesssttt1;
-yuzhi = 0.05;
-flag = 1;
-i = 1;
-temp2 = [];%记录差分吸收面积高度相似的频点的序号
-while flag
-    if abs(k(i))>yuzhi
-        k(i) = 0;
-    else
-         temp2 = [temp2 i];
-    end
-    i = i+1;
-    if i>length(k)
-        flag = 0;
-    end
-end
+%***************二合一算法，先滤波后筛点***************************************************
+[ temp2,num2 ] = screen( ttteeesssttt1,ttteeesssttt2,0.05 );
 
-%二合一算法，先筛点后滤波
+%***************二合一算法，先筛点后滤波***************************************************
+screenSpectrum_496 = fft(diffarea_496(temp1));
+screenSpectrum_94 = fft(diffarea_94(temp1));
 
-%傅里叶筛点法
-
+screenSpectrum_496_2 = fft(screenSpectrum_496);
+screenSpectrum_94_2 = fft(screenSpectrum_94);
+seri = 1:length(screenSpectrum_496_2);
+plot(seri,screenSpectrum_496_2,'r',seri,screenSpectrum_94_2,'b');
+%***************“频域”筛点***************************************************
+[retArea_496,num3] = screenFilter( diffarea_496,diffarea_496,diffarea_295,0.05 );
+[retSO2_44,num3] = screenFilter( diffSO2_44,diffarea_496,diffarea_295,0.05 );
 %%
-%滤波
-%diffSO2_test = twt_295;
+%高通滤波
+%diffSO2_test = twt_44;
 %diffArea = ttteeesssttt1;
 
 %筛点
-%diffSO2_test = diffSO2_295(temp);
-%diffArea = diffarea_496(temp);
+%diffSO2_test = diffSO2_44(temp1);
+%diffArea = diffarea_496(temp1);
 
 %先滤波后筛点
-diffSO2_test = twt_295(temp2);
+diffSO2_test = twt_44(temp2);
 diffArea = ttteeesssttt1(temp2);
 
+%“频域”筛点
+diffSO2_test = retSO2_44;
+diffArea = retArea_496;
+
+%裸算
+%diffSO2_test = diffSO2_94;
+%diffArea = diffarea_496;
 
 %基于最小二乘法的浓度反演算法
 
